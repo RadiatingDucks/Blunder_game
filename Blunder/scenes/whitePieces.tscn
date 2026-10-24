@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://8o1ky8hrrd55"]
+
+[ext_resource type="Script" uid="uid://f65t03n8f2yr" path="res://scripts/white_pieces.gd" id="1_2m8w7"]
+[ext_resource type="Texture2D" uid="uid://b1or0t5a661sw" path="res://Assets/pixel chess_v1.2/16x16 pieces/WhitePieces_Wood.png" id="1_w345d"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3uidm"]
+size = Vector2(15, 15)
+
+[node name="Area2D" type="Area2D"]
+position = Vector2(0, -1)
+scale = Vector2(2, 2)
+script = ExtResource("1_2m8w7")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(2, 2)
+texture = ExtResource("1_w345d")
+hframes = 6
+frame = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+scale = Vector2(2, 2)
+shape = SubResource("RectangleShape2D_3uidm")
