@@ -7,14 +7,11 @@
 size = Vector2(16, 15)
 
 [node name="Area2D" type="Area2D"]
-scale = Vector2(2, 2)
 script = ExtResource("1_o3cac")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(2, 2)
 texture = ExtResource("1_56tfe")
 hframes = 6
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-scale = Vector2(2, 2)
 shape = SubResource("RectangleShape2D_62b1u")

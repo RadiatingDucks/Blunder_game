@@ -1,7 +1,10 @@
-extends Node2D
+extends TileMap
+
 #preloading chess pieces
 const white_pieces = preload("res://scenes/whitePieces.tscn")
 const black_pieces = preload("res://scenes/blackPieces.tscn")
+
+@export var pieces =[]
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -13,13 +16,19 @@ func spawn_pieces(scene: PackedScene, grid_pos: Vector2i, frame_index: int) -> v
 	var new_piece = scene.instantiate()
 	
 	#position of the piece
-	new_piece.position = Vector2(grid_pos.x*64 + 32, grid_pos.y*64 + 32)
+	new_piece.position = Vector2(
+	grid_pos.x * 16 + 8,
+	grid_pos.y * 16 + 8
+	)
 	
 	#gets sprite key frame from variable
 	new_piece.piece_frame = frame_index
 	
 	#adds to game tree
 	add_child(new_piece)
+	
+	pieces.append(new_piece)
+	new_piece.global_board_position = grid_pos
 
 func reset_board() -> void:
 	#white side
@@ -60,6 +69,7 @@ func reset_board() -> void:
 	spawn_pieces(black_pieces, Vector2(7,2), 0) #Pawn G7
 	spawn_pieces(black_pieces, Vector2(8,2), 0) #Pawn H7
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func get_piece(pos: Vector2i):
+	for piece in pieces:
+		if piece.global_board_position == pos:
+			return piece

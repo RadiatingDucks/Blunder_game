@@ -1,0 +1,18 @@
+extends Node
+
+enum PLAYER {ONE, TWO}
+enum PLAYER_TWO_TYPE {
+	HUMAN, AI
+}
+enum COLORS{
+	BLACK,WHITE
+}
+
+enum PIECE_TYPES {
+	PAWN,
+	KNIGHT,
+	ROOK,
+	BISHOP,
+	QUEEN,
+	KING
+}

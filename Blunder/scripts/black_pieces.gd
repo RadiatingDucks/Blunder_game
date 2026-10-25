@@ -1,5 +1,8 @@
 extends Area2D
 
+var color = Globals.COLORS.BLACK
+var global_board_position: Vector2i
+
 @export var piece_frame: int = 0:
 	set(value):
 		piece_frame = value
