@@ -31,7 +31,7 @@ func spawn_pieces(scene: PackedScene, grid_pos: Vector2i, frame_index: int) -> v
 	new_piece.global_board_position = grid_pos
 	
 	if new_piece.piece_type == Globals.PIECE_TYPES.KING:
-		register_king(new_piece.global_board_position, new_piece.color)
+		register_king( new_piece.color, new_piece.global_board_position)
 	
 	#adds to game tree
 	add_child(new_piece)
@@ -95,24 +95,35 @@ func delete_piece(piece):
 func register_king(piece_color, board_position):
 	kings[piece_color] = board_position
 
+
 func beam_search_threat(own_color, cur_x, cur_y, inc_x, inc_y):
 	var threat_pos = []
-	
-	cur_x = inc_x
-	cur_y = inc_y
-	
+
+	# Move one square in the chosen direction
+	cur_x += inc_x
+	cur_y += inc_y
+
 	while cur_x >= 1 and cur_x < 9 and cur_y >= 1 and cur_y < 9:
 		var cur_pos = Vector2i(cur_x, cur_y)
 		var cur_piece = get_piece(cur_pos)
+
 		if cur_piece != null:
+			# An enemy piece can be captured
 			if cur_piece.color != own_color:
 				threat_pos.append(cur_pos)
+
+			# Stop when any piece blocks the diagonal
 			break
+
+		# Add this empty square as a possible move
 		threat_pos.append(cur_pos)
-		cur_x = inc_x
-		cur_y = inc_y
-	
+
+		# Continue one square further along the diagonal
+		cur_x += inc_x
+		cur_y += inc_y
+
 	return threat_pos
+
 
 func spot_search_threat(
 	own_color,
@@ -123,22 +134,30 @@ func spot_search_threat(
 	#do a single move and check if move is valid
 	cur_x += inc_x
 	cur_y += inc_y
-	
-	if cur_x >= 9 or cur_x < 0 or cur_y >= 1 or cur_y < 1:
+
+	if cur_x < 1 or cur_x > 8 or cur_y < 1 or cur_y > 8:
 		return
 
 	var cur_pos = Vector2i(cur_x, cur_y)
 	var cur_piece = get_piece(cur_pos)
-	
+
 	if cur_piece != null:
 		if free_only:
 			return
 		return cur_pos if cur_piece.color != own_color else null
-	return cur_pos if threat_only != own_color else null
-	
+
+	if threat_only:
+		return cur_pos
+	else:
+		return cur_pos
+
+
 func clone():
 	var board = self.duplicate()
+	board.kings = kings.duplicate()
+
 	for i in range(len(pieces)):
 		var piece = pieces[i].clone(board)
 		board.pieces[i] = piece
+
 	return board

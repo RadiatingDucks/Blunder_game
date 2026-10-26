@@ -47,11 +47,18 @@ func start_game():
 	status = Globals.COLORS.WHITE
 	player_2_type = Globals.PLAYER_TWO_TYPE.HUMAN
 	
-func get_pos_under_mouse():
+func gget_pos_under_mouse():
 	var pos = get_global_mouse_position()
 	pos.x = int(pos.x / 64)
 	pos.y = int(pos.y / 64)
 	return pos
+	
+func get_pos_under_mouse() -> Vector2i:
+	var pos = get_global_mouse_position()
+	return Vector2i(
+		int(pos.x / 64),
+		int(pos.y / 64)
+	)
 	
 func drop_piece():
 	#gets the position of the where the mouse wants to place the piece
@@ -78,27 +85,38 @@ func drop_piece():
 	
 	return false
 
-func valid_move(from_pos, to_pos):
+func valid_move(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 	var board_copy = board.clone()
 	var src_piece = board_copy.get_piece(from_pos)
-	
-	#if unable to move to movable or threatened position
-	if(
-		to_pos not in src_piece.get_moveable_positions()
-		and 
-		to_pos not in src_piece.get_moveable_posititons()
-	):
+
+	if src_piece == null:
+		board_copy.free()
 		return false
-	
+
+	if to_pos not in src_piece.get_moveable_positions():
+		board_copy.free()
+		return false
+
 	var dst_piece = board_copy.get_piece(to_pos)
+
 	if dst_piece != null:
+		if dst_piece.color == src_piece.color:
+			board_copy.free()
+			return false
 		board_copy.delete_piece(dst_piece)
+
 	src_piece.move_position(to_pos)
-	
+
+	var own_king_pos = board_copy.kings[src_piece.color]
+	var is_king_threatened = false
+
 	for piece in board_copy.pieces:
-		if status == Globals.COLORS.BLACK and board_copy.black_king_pos in piece.get_threatened_positions():
-			return false
-		if status == Globals.COLORS.WHITE and board_copy.white_king_pos in piece.get_threatened_positions():
-			return false
-	return true
+		if piece.color == src_piece.color:
+			continue
+
+		if own_king_pos in piece.get_threatened_positions():
+			is_king_threatened = true
+			break
 	
+	board_copy.free()
+	return not is_king_threatened
