@@ -9,10 +9,10 @@ enum COLORS{
 }
 
 enum PIECE_TYPES {
-	PAWN,
-	KNIGHT,
-	ROOK,
-	BISHOP,
-	QUEEN,
-	KING
+	PAWN = 0,
+	KNIGHT = 1,
+	ROOK = 2,
+	BISHOP = 3,
+	QUEEN = 4,
+	KING = 5
 }

@@ -5,6 +5,8 @@ const white_pieces = preload("res://scenes/whitePieces.tscn")
 const black_pieces = preload("res://scenes/blackPieces.tscn")
 
 @export var pieces =[]
+var kings = {}
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -22,14 +24,21 @@ func spawn_pieces(scene: PackedScene, grid_pos: Vector2i, frame_index: int) -> v
 	)
 	
 	#gets sprite key frame from variable
+	
 	new_piece.piece_frame = frame_index
+	new_piece.piece_type = frame_index
+	new_piece.board_handle = self
+	new_piece.global_board_position = grid_pos
+	
+	if new_piece.piece_type == Globals.PIECE_TYPES.KING:
+		register_king(new_piece.global_board_position, new_piece.color)
 	
 	#adds to game tree
 	add_child(new_piece)
 	
 	pieces.append(new_piece)
-	new_piece.global_board_position = grid_pos
 
+#resets board back to initial position
 func reset_board() -> void:
 	#white side
 	spawn_pieces(white_pieces, Vector2(1,8), 2) # Rook A1
@@ -73,3 +82,63 @@ func get_piece(pos: Vector2i):
 	for piece in pieces:
 		if piece.global_board_position == pos:
 			return piece
+
+#deletes pieces
+func delete_piece(piece):
+	for i in range(len(pieces)):
+		if pieces[i] == piece:
+			var popped = pieces.pop_at(i)
+			popped.queue_free()
+			return
+
+#register king function for finding checks
+func register_king(piece_color, board_position):
+	kings[piece_color] = board_position
+
+func beam_search_threat(own_color, cur_x, cur_y, inc_x, inc_y):
+	var threat_pos = []
+	
+	cur_x = inc_x
+	cur_y = inc_y
+	
+	while cur_x >= 1 and cur_x < 9 and cur_y >= 1 and cur_y < 9:
+		var cur_pos = Vector2i(cur_x, cur_y)
+		var cur_piece = get_piece(cur_pos)
+		if cur_piece != null:
+			if cur_piece.color != own_color:
+				threat_pos.append(cur_pos)
+			break
+		threat_pos.append(cur_pos)
+		cur_x = inc_x
+		cur_y = inc_y
+	
+	return threat_pos
+
+func spot_search_threat(
+	own_color,
+	cur_x, cur_y,
+	inc_x, inc_y,
+	threat_only = false, free_only = false
+):
+	#do a single move and check if move is valid
+	cur_x += inc_x
+	cur_y += inc_y
+	
+	if cur_x >= 9 or cur_x < 0 or cur_y >= 1 or cur_y < 1:
+		return
+
+	var cur_pos = Vector2i(cur_x, cur_y)
+	var cur_piece = get_piece(cur_pos)
+	
+	if cur_piece != null:
+		if free_only:
+			return
+		return cur_pos if cur_piece.color != own_color else null
+	return cur_pos if threat_only != own_color else null
+	
+func clone():
+	var board = self.duplicate()
+	for i in range(len(pieces)):
+		var piece = pieces[i].clone(board)
+		board.pieces[i] = piece
+	return board
