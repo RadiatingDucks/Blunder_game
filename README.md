@@ -1,14 +1,18 @@
 This is the prototype of a chess logic/puzzle game!
 
-It is under construction, there is no cool features or functionality currently. 
+It is under construction, there is no cool features currently. 
 
-For now, only the white chess pieces can move to squares. There are no boundaries so they can move outside the square too. 
+For now, it functions as a normal chess board with minimum functionality. All the pieces and stuff moves though.
 
 It's built in godot.
 
 How to run:
+you can play the web version here: https://radiatingducks.itch.io/blunder-v1 
+
+or you can:
 - download the files
 - download godot
 - open godot
 - select this file
-(it is not recommended to run this because this is the barebones of the barebones)
+
+
