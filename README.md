@@ -9,9 +9,10 @@ This game was brought to existence after a midnight chess frenzy that diminished
 
 How to Play it:
 Drag the pieces around with your mouse! They should move correctly. White goes first and then Black moves. You cannot castle or en passant yet, but you can capture pieces and put the king in check!
-<img width="584" height="373" alt="Screenshot 2026-10-26 164212" src="https://github.com/user-attachments/assets/5d4c7cb6-73cb-458a-8303-1231e8e43551" />
-<img width="586" height="372" alt="Screenshot 2026-10-26 164130" src="https://github.com/user-attachments/assets/049379f5-722b-48b0-aeb7-7c9c27b4a8d3" />
-<img width="1158" height="734" alt="blunder_gif" src="https://github.com/user-attachments/assets/26761fee-d51d-437e-8043-72eea418536b" />
+<img width="1000" height="auto" alt="blunder_gif" src="https://github.com/user-attachments/assets/26761fee-d51d-437e-8043-72eea418536b" />
+<img width="292" height="auto" alt="Screenshot 2026-10-26 164212" src="https://github.com/user-attachments/assets/5d4c7cb6-73cb-458a-8303-1231e8e43551" />
+<img width="292" height="auto" alt="Screenshot 2026-10-26 164130" src="https://github.com/user-attachments/assets/049379f5-722b-48b0-aeb7-7c9c27b4a8d3" />
+
 
 Where to play it:
 you can play the web version here: https://radiatingducks.itch.io/blunder-v1 
