@@ -22,7 +22,6 @@ var previous_position = null;
 func _ready() -> void:
 	start_game()
 
-
 func _input(event):
 	#when mouse left clicks
 	if Input.is_action_just_pressed("left_click"):
@@ -52,7 +51,7 @@ func _input(event):
 		var is_valid_move = drop_piece()
 		#if release position is illegal
 		if is_valid_move:
-			check_checkmate(status)
+			check_end_game(status)
 		else:
 			#move piec back to its previous position
 			selected_piece.position = previous_position
@@ -63,7 +62,6 @@ func _input(event):
 		selected_piece = null
 		#resets state of mouse
 		is_dragging = false
-		
 
 #function to start the game(kinda like init which sets the variables and states)
 func start_game():
@@ -196,15 +194,91 @@ func check_king_threatened(color) -> bool:
 	return false
 
 #check if checkmate
-func check_checkmate(color) -> bool:
+func check_end_game(color) -> bool:
 	#if king is in check and there are no valid moves
 	if check_valid_move(color) == false:
 		if check_king_threatened(color):
 			print("Checkmate!!!")
+			get_tree().change_scene_to_file("res://scenes/game_over.tscn")
 			#return checkmate is true
 			return true
 		print("Stalemate D:")
+		get_tree().change_scene_to_file("res://scenes/game_over.tscn")
 		return true
 	return false
 
-#stalemate
+#checks if a piece has moved
+func check_first_move(piece):
+	return !piece.moved
+
+
+func king_can_move_to(color, pos):
+	var board_copy = board.clone()
+	var king_copy = board_copy.get_piece(board_copy.kings[color])
+
+	king_copy.move_position(pos)
+
+	var threatened = false
+
+	for piece in board_copy.pieces:
+		if piece.color == color:
+			continue
+
+		if pos in piece.get_threatened_positions():
+			threatened = true
+			break
+
+	board_copy.free()
+	return !threatened
+
+#castling 
+#rules:
+#king can't go in check/be already in check
+#king can't have moved
+#rook can't have moved
+#nothing between rook and king
+
+func castle(color, side):
+	var king = board.get_piece(board.kings[color])
+
+	if king == null:
+		return false
+
+	# King must not have moved or currently be in check
+	if king.moved or check_king_threatened(color):
+		return false
+
+	# Find the correct rook
+	var rank = 8 if color == Globals.COLORS.WHITE else 1
+	var rook_file = 8 if side == "kingside" else 1
+	var rook = board.get_piece(Vector2i(rook_file, rank))
+
+	if rook == null:
+		return false
+
+	if rook.color != color or rook.piece_type != Globals.PIECE_TYPES.ROOK:
+		return false
+
+	if rook.moved:
+		return false
+
+	# Check that the spaces between king and rook are empty
+	var direction = sign(rook.global_board_position.x - king.global_board_position.x)
+	var x = king.global_board_position.x + direction
+
+	while x != rook.global_board_position.x:
+		if board.get_piece(Vector2i(x, king.global_board_position.y)) != null:
+			return false
+		x += direction
+
+	# Check the squares the king travels through 
+	var transit_x = king.global_board_position.x + direction
+	var destination_x = king.global_board_position.x + (2 * direction)
+
+	if !king_can_move_to(color, Vector2i(transit_x, rank)):
+		return false
+
+	if !king_can_move_to(color, Vector2i(destination_x, rank)):
+		return false
+
+	return true
