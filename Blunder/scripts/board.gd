@@ -4,12 +4,17 @@ extends TileMap
 const white_pieces = preload("res://scenes/whitePieces.tscn")
 const black_pieces = preload("res://scenes/blackPieces.tscn")
 
+#stores all chess pieces currently on board
 @export var pieces =[]
+#stores where the king is
 var kings = {}
 
+#reference to game node
+var game_controller
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	#sets board
 	reset_board()
 
 #makes new pieces in positions wanted
@@ -30,12 +35,14 @@ func spawn_pieces(scene: PackedScene, grid_pos: Vector2i, frame_index: int) -> v
 	new_piece.board_handle = self
 	new_piece.global_board_position = grid_pos
 	
+	#checks if new piece is king and stores pos in dictionary
 	if new_piece.piece_type == Globals.PIECE_TYPES.KING:
 		register_king( new_piece.color, new_piece.global_board_position)
 	
 	#adds to game tree
 	add_child(new_piece)
 	
+	#add to piece array
 	pieces.append(new_piece)
 
 #resets board back to initial position
@@ -78,7 +85,9 @@ func reset_board() -> void:
 	spawn_pieces(black_pieces, Vector2(7,2), 0) #Pawn G7
 	spawn_pieces(black_pieces, Vector2(8,2), 0) #Pawn H7
 
+#gets the piece from a given position
 func get_piece(pos: Vector2i):
+	#checks piece array
 	for piece in pieces:
 		if piece.global_board_position == pos:
 			return piece
@@ -86,8 +95,10 @@ func get_piece(pos: Vector2i):
 #deletes pieces
 func delete_piece(piece):
 	for i in range(len(pieces)):
+		#checks if its the right piece
 		if pieces[i] == piece:
 			var popped = pieces.pop_at(i)
+			#deletes piece
 			popped.queue_free()
 			return
 
@@ -102,23 +113,26 @@ func beam_search_threat(own_color, cur_x, cur_y, inc_x, inc_y):
 	# Move one square in the chosen direction
 	cur_x += inc_x
 	cur_y += inc_y
-
+	
+	#while the piece is still in board
 	while cur_x >= 1 and cur_x < 9 and cur_y >= 1 and cur_y < 9:
+		#current position variable
 		var cur_pos = Vector2i(cur_x, cur_y)
+		#finds if there's a piece there
 		var cur_piece = get_piece(cur_pos)
 
 		if cur_piece != null:
-			# An enemy piece can be captured
+			# check if an enemy piece can be captured
 			if cur_piece.color != own_color:
 				threat_pos.append(cur_pos)
 
-			# Stop when any piece blocks the diagonal
+			# Stop when any piece blocks the path
 			break
 
 		# Add this empty square as a possible move
 		threat_pos.append(cur_pos)
 
-		# Continue one square further along the diagonal
+		# Continue one square further along the path
 		cur_x += inc_x
 		cur_y += inc_y
 
@@ -140,24 +154,30 @@ func spot_search_threat(
 
 	var cur_pos = Vector2i(cur_x, cur_y)
 	var cur_piece = get_piece(cur_pos)
-
+	
+	#if there's a piece at pos
 	if cur_piece != null:
 		if free_only:
 			return
+		#return pos if there's an enemy at pos else don't return pos
 		return cur_pos if cur_piece.color != own_color else null
 
-	if threat_only:
-		return cur_pos
-	else:
-		return cur_pos
+	return cur_pos
 
 
 func clone():
+	#creates duplicate of board
 	var board = self.duplicate()
+	#duplicate of kings pos dictionary
 	board.kings = kings.duplicate()
-
+	#copies reference to game node
+	board.game_controller = game_controller
+	
+	#for each piece
 	for i in range(len(pieces)):
+		#clones pieces
 		var piece = pieces[i].clone(board)
+		#replaces in array
 		board.pieces[i] = piece
-
+	#return cloned board
 	return board

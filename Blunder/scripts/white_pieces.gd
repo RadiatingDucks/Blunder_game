@@ -38,11 +38,6 @@ func move_position(to_move:Vector2i):
 		#updates the sprite
 		update_sprite()
 
-func cclone(_board):
-	var piece = self.duplicate()
-	piece.board_handle = _board
-	return piece
-
 func clone(_board):
 	var piece = self.duplicate()
 	piece.board_handle = _board
@@ -59,7 +54,7 @@ func get_moveable_positions():
 		Globals.PIECE_TYPES.ROOK: return rook_threat_pos()
 		Globals.PIECE_TYPES.KNIGHT: return knight_threat_pos()
 		Globals.PIECE_TYPES.QUEEN: return queen_threat_pos()
-		Globals.PIECE_TYPES.KING: return king_threat_pos()
+		Globals.PIECE_TYPES.KING: return king_move_pos()
 		_: return []
 	
 func get_threatened_positions():
@@ -205,5 +200,18 @@ func king_threat_pos():
 
 		if pos != null:
 			positions.append(pos)
+
+	return positions
+
+func king_move_pos():
+	var positions = king_threat_pos()
+	
+	#kingside castling
+	if board_handle.game_controller.castle(color, "kingside"):
+		positions.append(Vector2i(7, 8))
+
+	#queenside castling
+	if board_handle.game_controller.castle(color, "queenside"):
+		positions.append(Vector2i(3, 8))
 
 	return positions

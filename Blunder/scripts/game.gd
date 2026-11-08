@@ -20,6 +20,7 @@ var previous_position = null;
 @onready var board = $board
 
 func _ready() -> void:
+	board.game_controller = self
 	start_game()
 
 func _input(event):
@@ -82,11 +83,71 @@ func get_pos_under_mouse() -> Vector2i:
 	)
 
 #function for checking if a piece can be placed and switches player
-func drop_piece():
+func ddrop_piece():
 	#gets the position of the where the mouse wants to place the piece
 	var to_move = get_pos_under_mouse()
 	
 	#checks if the placement is valid compared to its original position
+	if valid_move(selected_piece.global_board_position, to_move):
+		#gets the piece that is at the coordinates player wants to drop the selected piece( returns null if there's no piece there) 
+		var dest_piece = board.get_piece(to_move)
+		
+		#if there is a piece at the square and it is not the same color as the selected piece
+		if dest_piece != null:
+			#deletes the piece
+			board.delete_piece(dest_piece)
+		#moves the piece to the location
+		selected_piece.move_position(to_move)
+		
+		#switches turns for black and white by detecting current color
+		if status == Globals.COLORS.WHITE:
+			status = Globals.COLORS.BLACK
+		else:
+			status = Globals.COLORS.WHITE
+		return true
+	#the move is not valid
+	return false
+
+func drop_piece():
+	var to_move = get_pos_under_mouse()
+
+	#check if the selected piece is a king
+	if selected_piece.piece_type == Globals.PIECE_TYPES.KING:
+
+		#check if king is moving two squares
+		if abs(to_move.x - selected_piece.global_board_position.x) == 2:
+
+			var side = "kingside" if to_move.x > selected_piece.global_board_position.x else "queenside"
+
+			#check castling validity
+			if castle(selected_piece.color, side):
+
+				var rank = selected_piece.global_board_position.y
+				var direction = 1 if side == "kingside" else -1
+
+				#find rook
+				var rook_file = 8 if side == "kingside" else 1
+				var rook = board.get_piece(Vector2i(rook_file, rank))
+
+				#move king
+				selected_piece.move_position(to_move)
+
+				#move rook
+				rook.move_position(Vector2i(
+					to_move.x - direction,
+					rank
+				))
+
+				#wwitch turns
+				status = Globals.COLORS.BLACK if status == Globals.COLORS.WHITE else Globals.COLORS.WHITE
+
+				return true
+
+			return false
+
+#normal movement
+
+#checks if the placement is valid compared to its original position
 	if valid_move(selected_piece.global_board_position, to_move):
 		#gets the piece that is at the coordinates player wants to drop the selected piece( returns null if there's no piece there) 
 		var dest_piece = board.get_piece(to_move)
@@ -207,28 +268,32 @@ func check_end_game(color) -> bool:
 		return true
 	return false
 
-#checks if a piece has moved
-func check_first_move(piece):
-	return !piece.moved
-
-
+#checks if king can move to a position legally
 func king_can_move_to(color, pos):
+	#creates copy of board
 	var board_copy = board.clone()
+	#finds the king required
 	var king_copy = board_copy.get_piece(board_copy.kings[color])
-
+	
+	#let the king move to the position
 	king_copy.move_position(pos)
-
+	
+	#threatened state variable
 	var threatened = false
-
+	
+	#checks if pieces are the right colour
 	for piece in board_copy.pieces:
 		if piece.color == color:
 			continue
-
+		
+		#checks if the position is in the list of positions this piece can move to
 		if pos in piece.get_threatened_positions():
+			#switch state to threatened
 			threatened = true
 			break
-
+	#delete board clone
 	board_copy.free()
+	#return state of king at position
 	return !threatened
 
 #castling 
@@ -240,45 +305,60 @@ func king_can_move_to(color, pos):
 
 func castle(color, side):
 	var king = board.get_piece(board.kings[color])
-
+	
+	#checks if there is a king
 	if king == null:
 		return false
 
-	# King must not have moved or currently be in check
+	# checks if king has moves or is in check
 	if king.moved or check_king_threatened(color):
 		return false
 
 	# Find the correct rook
-	var rank = 8 if color == Globals.COLORS.WHITE else 1
-	var rook_file = 8 if side == "kingside" else 1
+	#finding row required based on color
+	var rank = 8 if color == Globals.COLORS.WHITE else 1 
+	#finding if castling left or right
+	var rook_file = 8 if side == "kingside" else 1 
+	#get the rook required for castling
 	var rook = board.get_piece(Vector2i(rook_file, rank))
-
+	
+	#check if king still at original postion
+	if king.global_board_position != Vector2i(5, rank):
+		return false
+	
+	#check if rook exsits
 	if rook == null:
 		return false
-
+	
+	#check if rook is of same colour and a rook
 	if rook.color != color or rook.piece_type != Globals.PIECE_TYPES.ROOK:
 		return false
 
+	#check if rook has moved
 	if rook.moved:
 		return false
 
-	# Check that the spaces between king and rook are empty
+	# check that the spaces between king and rook are empty
+	#finds the direction the king is castling mathematically(1 or -1)
 	var direction = sign(rook.global_board_position.x - king.global_board_position.x)
 	var x = king.global_board_position.x + direction
-
+	
+	#checks each square between king and rook
 	while x != rook.global_board_position.x:
+		#checks if there's a piece in between king and rook
 		if board.get_piece(Vector2i(x, king.global_board_position.y)) != null:
 			return false
+		#check the next square over
 		x += direction
 
 	# Check the squares the king travels through 
-	var transit_x = king.global_board_position.x + direction
+	var init_x = king.global_board_position.x + direction
 	var destination_x = king.global_board_position.x + (2 * direction)
-
-	if !king_can_move_to(color, Vector2i(transit_x, rank)):
+	
+	#checks if no threats from other pieces
+	if !king_can_move_to(color, Vector2i(init_x, rank)):
 		return false
-
+	#checks if no threats
 	if !king_can_move_to(color, Vector2i(destination_x, rank)):
 		return false
-
 	return true
