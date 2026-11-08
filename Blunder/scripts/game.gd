@@ -83,31 +83,6 @@ func get_pos_under_mouse() -> Vector2i:
 	)
 
 #function for checking if a piece can be placed and switches player
-func ddrop_piece():
-	#gets the position of the where the mouse wants to place the piece
-	var to_move = get_pos_under_mouse()
-	
-	#checks if the placement is valid compared to its original position
-	if valid_move(selected_piece.global_board_position, to_move):
-		#gets the piece that is at the coordinates player wants to drop the selected piece( returns null if there's no piece there) 
-		var dest_piece = board.get_piece(to_move)
-		
-		#if there is a piece at the square and it is not the same color as the selected piece
-		if dest_piece != null:
-			#deletes the piece
-			board.delete_piece(dest_piece)
-		#moves the piece to the location
-		selected_piece.move_position(to_move)
-		
-		#switches turns for black and white by detecting current color
-		if status == Globals.COLORS.WHITE:
-			status = Globals.COLORS.BLACK
-		else:
-			status = Globals.COLORS.WHITE
-		return true
-	#the move is not valid
-	return false
-
 func drop_piece():
 	var to_move = get_pos_under_mouse()
 
@@ -116,7 +91,8 @@ func drop_piece():
 
 		#check if king is moving two squares
 		if abs(to_move.x - selected_piece.global_board_position.x) == 2:
-
+			
+			#check if castling kingside or queenside
 			var side = "kingside" if to_move.x > selected_piece.global_board_position.x else "queenside"
 
 			#check castling validity
@@ -131,7 +107,6 @@ func drop_piece():
 
 				#move king
 				selected_piece.move_position(to_move)
-
 				#move rook
 				rook.move_position(Vector2i(
 					to_move.x - direction,
@@ -140,7 +115,7 @@ func drop_piece():
 
 				#wwitch turns
 				status = Globals.COLORS.BLACK if status == Globals.COLORS.WHITE else Globals.COLORS.WHITE
-
+				
 				return true
 
 			return false

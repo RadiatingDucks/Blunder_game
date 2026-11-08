@@ -106,7 +106,6 @@ func delete_piece(piece):
 func register_king(piece_color, board_position):
 	kings[piece_color] = board_position
 
-
 func beam_search_threat(own_color, cur_x, cur_y, inc_x, inc_y):
 	var threat_pos = []
 
