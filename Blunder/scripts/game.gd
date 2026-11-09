@@ -16,6 +16,13 @@ var selected_piece = null;
 #stores the poition the selected piece was in
 var previous_position = null;
 
+#last piece type moved
+var last_move_piece = null
+#last piece moved init pos
+var last_move_from = Vector2i(-1, -1)
+#last piece moved final pos
+var last_move_to = Vector2i(-1, -1)
+
 #referencing board.gd's functions and variables
 @onready var board = $board
 
@@ -82,16 +89,20 @@ func get_pos_under_mouse() -> Vector2i:
 		int(pos.y / 64)
 	)
 
+
 #function for checking if a piece can be placed and switches player
 func drop_piece():
 	var to_move = get_pos_under_mouse()
+
+	# Store the original position before moving the piece
+	var from_pos = selected_piece.global_board_position
 
 	#check if the selected piece is a king
 	if selected_piece.piece_type == Globals.PIECE_TYPES.KING:
 
 		#check if king is moving two squares
 		if abs(to_move.x - selected_piece.global_board_position.x) == 2:
-			
+
 			#check if castling kingside or queenside
 			var side = "kingside" if to_move.x > selected_piece.global_board_position.x else "queenside"
 
@@ -107,39 +118,76 @@ func drop_piece():
 
 				#move king
 				selected_piece.move_position(to_move)
+
 				#move rook
 				rook.move_position(Vector2i(
 					to_move.x - direction,
 					rank
 				))
 
-				#wwitch turns
-				status = Globals.COLORS.BLACK if status == Globals.COLORS.WHITE else Globals.COLORS.WHITE
+				# Record the king's move
+				# This also expires any previous en passant opportunity
+				last_move_piece = selected_piece
+				last_move_from = from_pos
+				last_move_to = to_move
 				
+				# Update the yellow squares on the board
+				board.set_last_move_highlight(from_pos, to_move)
+				
+				#switch turns
+				status = Globals.COLORS.BLACK if status == Globals.COLORS.WHITE else Globals.COLORS.WHITE
+
 				return true
 
 			return false
 
-#normal movement
+	#normal movement
 
-#checks if the placement is valid compared to its original position
-	if valid_move(selected_piece.global_board_position, to_move):
-		#gets the piece that is at the coordinates player wants to drop the selected piece( returns null if there's no piece there) 
+	#checks if the placement is valid compared to its original position
+	if valid_move(from_pos, to_move):
+
+		#check if is an en passant capture
+		var is_en_passant = (
+			selected_piece.piece_type == Globals.PIECE_TYPES.PAWN
+			and board.get_piece(to_move) == null
+			and abs(to_move.x - from_pos.x) == 1
+			and can_en_passant(selected_piece, to_move)
+		)
+
+		#if this is an en passant capture
+		if is_en_passant:
+			#delete the opponent's pawn from its actual position
+			var victim = board.get_piece(last_move_to)
+			board.delete_piece(victim)
+
+		#gets the piece that is at the coordinates player wants to drop the selected piece
+		#returns null if there's no piece there
 		var dest_piece = board.get_piece(to_move)
-		
+
 		#if there is a piece at the square and it is not the same color as the selected piece
 		if dest_piece != null:
 			#deletes the piece
 			board.delete_piece(dest_piece)
+
 		#moves the piece to the location
 		selected_piece.move_position(to_move)
+
+		# Record the move for checking future en passant opportunities
+		last_move_piece = selected_piece
+		last_move_from = from_pos
+		last_move_to = to_move
+		
+		# Update the yellow squares on the board
+		board.set_last_move_highlight(from_pos, to_move)
 		
 		#switches turns for black and white by detecting current color
 		if status == Globals.COLORS.WHITE:
 			status = Globals.COLORS.BLACK
 		else:
 			status = Globals.COLORS.WHITE
+
 		return true
+
 	#the move is not valid
 	return false
 
@@ -336,4 +384,40 @@ func castle(color, side):
 	#checks if no threats
 	if !king_can_move_to(color, Vector2i(destination_x, rank)):
 		return false
+	return true
+
+#En passant
+#rules
+#1. pawn must be at the 5th/4th rank
+#2. ooponent's pawn must move two squares
+#3. the opponent's pawn must reach adjacent square of the pawn by  first move
+func can_en_passant(pawn, target_pos):
+	#previous move must have been made by a pawn
+	if last_move_piece == null:
+		return false
+
+	if last_move_piece.piece_type != Globals.PIECE_TYPES.PAWN:
+		return false
+
+	#previous pawn must belong to the opponent
+	if last_move_piece.color == pawn.color:
+		return false
+
+	#opponent's pawn must have moved two squares
+	if abs(last_move_to.y - last_move_from.y) != 2:
+		return false
+
+	#opponent's pawn must be adjacent
+	if last_move_to.y != pawn.global_board_position.y:
+		return false
+
+	if abs(last_move_to.x - pawn.global_board_position.x) != 1:
+		return false
+
+	#target must be the square directly behind the opponent's pawn
+	var direction = -1 if pawn.color == Globals.COLORS.WHITE else 1
+
+	if target_pos != last_move_to + Vector2i(0, direction):
+		return false
+
 	return true

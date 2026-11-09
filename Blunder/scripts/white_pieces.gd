@@ -120,7 +120,18 @@ func pawn_move_pos():
 
 		if target_piece != null and target_piece.color != color:
 			positions.append(target_pos)
+	
+	#En passant
+	var direction = -1
 
+	for dx in [-1, 1]:
+		var target_pos = global_board_position + Vector2i(dx, direction)
+
+		if target_pos.x < 1 or target_pos.x > 8:
+			continue
+
+		if board_handle.game_controller.can_en_passant(self, target_pos):
+			positions.append(target_pos)
 	return positions
 
 #bishop moves

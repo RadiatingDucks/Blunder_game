@@ -12,6 +12,9 @@ var kings = {}
 #reference to game node
 var game_controller
 
+#referencing highlight_layer.gd's functions and variables
+@onready var highlight_layer = $HighlightLayer
+
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	#sets board
@@ -21,6 +24,9 @@ func _ready() -> void:
 func spawn_pieces(scene: PackedScene, grid_pos: Vector2i, frame_index: int) -> void:
 	#creates a piece
 	var new_piece = scene.instantiate()
+	
+	#z_index
+	new_piece.z_index = 2
 	
 	#position of the piece
 	new_piece.position = Vector2(
@@ -163,7 +169,6 @@ func spot_search_threat(
 
 	return cur_pos
 
-
 func clone():
 	#creates duplicate of board
 	var board = self.duplicate()
@@ -180,3 +185,7 @@ func clone():
 		board.pieces[i] = piece
 	#return cloned board
 	return board
+
+#updates highlighted squares after a move
+func set_last_move_highlight(from_pos: Vector2i, to_pos: Vector2i):
+	highlight_layer.set_last_move_highlight(from_pos, to_pos)
