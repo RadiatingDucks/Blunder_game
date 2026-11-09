@@ -11,7 +11,7 @@ How it was made:
 This game is created on Godot. It was created by using the board as a vector to arrange the pieces. 
 
 How to Play it:
-Drag the pieces around with your mouse! They should move correctly. White goes first and then Black moves. You cannot castle or en passant yet, but you can capture pieces and put the king in check! 
+Drag the pieces around with your mouse! They should move correctly. White goes first and then Black moves. 
 <img width="1000" height="auto" alt="blunder_gif" src="https://github.com/user-attachments/assets/26761fee-d51d-437e-8043-72eea418536b" />
 <img width="1000" height="auto" alt="blunder_gif_2" src="https://github.com/user-attachments/assets/5d5f5b7f-9c30-4306-ba09-fee470de3c25" />
 
