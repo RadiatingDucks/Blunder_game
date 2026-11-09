@@ -3,7 +3,7 @@ Blunder - a chess puzzle game(in the making)!!!
 Description:
 This is the prototype of a chess logic/puzzle game built in Godot! It is going to have all sorts of logic games embedded in Chess, and current ideas include a chess soduku, a chess minesweeper, a chess battleship, and much more!!! It is aimed at people with an rough idea of how chess pieces move, but beginner-friendly functionalities will be added further on. 
 
-For now, it functions as a normal chess board where different pieces can move like they are supposed to, there's alternating turns for black and white, and the King can't move in illegal places. When you checkmate/stalemate a scene pops up so you can restart the game!
+For now, it functions as a normal chess board where different pieces can move like they are supposed to, there's alternating turns for black and white, and the King can't move in illegal places. When you checkmate/stalemate a scene pops up so you can restart the game! There's also castling and En passant functions now!!!
 
 This game was brought to existence after a midnight chess frenzy that diminished 100 elos ;-;
 
